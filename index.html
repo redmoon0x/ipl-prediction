@@ -1,0 +1,356 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>IPL Match Winner Predictor - Technical Documentation</title>
+    <style>
+        :root {
+            --primary-color: #24292e;
+            --text-color: #24292e;
+            --bg-color: #ffffff;
+            --code-bg: #f6f8fa;
+            --border-color: #e1e4e8;
+            --link-color: #0366d6;
+            --heading-color: #24292e;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif;
+            line-height: 1.6;
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            font-size: 16px;
+            padding-bottom: 50px;
+        }
+
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        header {
+            border-bottom: 1px solid var(--border-color);
+            margin-bottom: 30px;
+            padding: 20px 0;
+        }
+
+        h1, h2, h3, h4 {
+            color: var(--heading-color);
+            margin-top: 24px;
+            margin-bottom: 16px;
+            font-weight: 600;
+            line-height: 1.25;
+        }
+
+        h1 { 
+            font-size: 2em;
+            padding-bottom: 0.3em;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        h2 {
+            font-size: 1.5em;
+            padding-bottom: 0.3em;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        h3 { font-size: 1.25em; }
+        h4 { font-size: 1em; }
+
+        p, ul, ol {
+            margin-bottom: 16px;
+        }
+
+        ul, ol {
+            padding-left: 2em;
+        }
+
+        li + li {
+            margin-top: 0.25em;
+        }
+
+        code {
+            font-family: SFMono-Regular, Consolas, "Liberation Mono", Menlo, monospace;
+            background: var(--code-bg);
+            padding: 0.2em 0.4em;
+            border-radius: 3px;
+            font-size: 85%;
+        }
+
+        pre {
+            background: var(--code-bg);
+            padding: 16px;
+            border-radius: 6px;
+            border: 1px solid var(--border-color);
+            overflow-x: auto;
+            margin-bottom: 16px;
+        }
+
+        .section {
+            margin-bottom: 32px;
+        }
+
+        .metrics {
+            font-family: monospace;
+            background: var(--code-bg);
+            padding: 16px;
+            border-radius: 6px;
+            border: 1px solid var(--border-color);
+            margin: 16px 0;
+        }
+
+        .test-case {
+            background: var(--code-bg);
+            padding: 16px;
+            border-radius: 6px;
+            border: 1px solid var(--border-color);
+            margin-bottom: 16px;
+            font-family: monospace;
+        }
+
+        .test-case.pass {
+            border-left: 4px solid #28a745;
+        }
+
+        .test-case.fail {
+            border-left: 4px solid #dc3545;
+        }
+
+        footer {
+            margin-top: 40px;
+            padding-top: 20px;
+            border-top: 1px solid var(--border-color);
+            color: #6a737d;
+            font-size: 14px;
+        }
+
+        a {
+            color: var(--link-color);
+            text-decoration: none;
+        }
+
+        a:hover {
+            text-decoration: underline;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>IPL Match Winner Predictor</h1>
+            <p>Technical documentation for the Random Forest-based cricket match prediction system</p>
+        </header>
+
+        <div class="section">
+            <h2>1. Understanding Random Forest</h2>
+            <p>Random Forest is like having a large group of cricket experts making predictions together. Each expert (a decision tree) looks at different aspects of the match data and makes their own prediction. Here's how it works:</p>
+            
+            <ul>
+                <li><strong>Multiple Experts:</strong> Instead of relying on a single prediction, we combine predictions from 200 different decision trees</li>
+                <li><strong>Different Perspectives:</strong> Each tree looks at random combinations of factors like team statistics, venue performance, and match conditions</li>
+                <li><strong>Voting System:</strong> All trees vote on the likely winner, and the majority prediction is taken as the final answer</li>
+                <li><strong>Confidence Level:</strong> The percentage of trees agreeing on a prediction gives us the confidence level</li>
+                <li><strong>Balanced Decisions:</strong> Trees are trained to handle teams with different numbers of matches fairly</li>
+            </ul>
+
+            <p>This approach is more reliable than using a single decision-making process because it reduces the chance of making mistakes based on limited data patterns.</p>
+        </div>
+
+        <div class="section">
+            <h2>2. Random Forest Implementation</h2>
+            <h3>1.1 Model Configuration</h3>
+            <pre>
+RandomForestClassifier(
+    n_estimators=200,
+    random_state=42,
+    class_weight='balanced',
+    max_depth=10,
+    min_samples_split=5,
+    min_samples_leaf=2
+)</pre>
+            
+            <h3>1.2 Feature Engineering</h3>
+            <ul>
+                <li>Categorical Features:
+                    <pre>['season', 'venue', 'team1', 'team2', 'toss_winner', 'toss_decision', 'winner']</pre>
+                </li>
+                <li>Numerical Features:
+                    <pre>- team{1,2}_avg_runs
+- team{1,2}_std_runs
+- team{1,2}_avg_wickets_lost/taken
+- team{1,2}_avg_runs_conceded</pre>
+                </li>
+            </ul>
+        </div>
+
+        <div class="section">
+            <h2>2. Core Components (app.py)</h2>
+            
+            <h3>2.1 Data Pipeline</h3>
+            <p>The application processes two main data sources:</p>
+            <pre>matches = pd.read_csv("matches.csv")  # Historical match data
+deliveries = pd.read_csv("deliveries.csv")  # Ball-by-ball statistics</pre>
+
+            <h3>2.2 Statistical Processing</h3>
+            <p>Team statistics calculation with pandas aggregation:</p>
+            <pre>def calculate_team_stats(deliveries, matches):
+    # Batting Statistics
+    batting_stats = deliveries.groupby(['match_id', 'batting_team']).agg({
+        'total_runs': 'sum',   # Total runs per match
+        'ball': 'count',       # Balls faced
+        'is_wicket': 'sum'     # Wickets lost
+    }).reset_index()
+    
+    batting_stats = batting_stats.groupby('batting_team').agg({
+        'total_runs': ['mean', 'std'],  # Average and consistency
+        'ball': 'mean',                 # Average balls faced
+        'is_wicket': 'mean'            # Average wickets lost
+    }).round(2)
+    
+    # Bowling Statistics
+    bowling_stats = deliveries.groupby(['match_id', 'bowling_team']).agg({
+        'total_runs': 'sum',    # Runs conceded
+        'is_wicket': 'sum'      # Wickets taken
+    }).reset_index()</pre>
+
+            <h3>2.3 Feature Engineering</h3>
+            <p>Advanced feature processing for the model:</p>
+            <pre>def add_team_stats(row):
+    # Extract team statistics
+    team1_batting = batting_stats[batting_stats['batting_team'] == row['team1']].iloc[0]
+    team2_batting = batting_stats[batting_stats['batting_team'] == row['team2']].iloc[0]
+    team1_bowling = bowling_stats[bowling_stats['bowling_team'] == row['team1']].iloc[0]
+    team2_bowling = bowling_stats[bowling_stats['bowling_team'] == row['team2']].iloc[0]
+    
+    return pd.Series({
+        'team1_avg_runs': team1_batting['avg_runs'],
+        'team1_std_runs': team1_batting['std_runs'],
+        'team1_avg_wickets_lost': team1_batting['avg_wickets_lost'],
+        'team1_avg_wickets_taken': team1_bowling['avg_wickets_taken'],
+        'team1_avg_runs_conceded': team1_bowling['avg_runs_conceded'],
+        # Similar features for team2...
+    })</pre>
+
+            <h3>2.4 Prediction Engine</h3>
+            <p>Core prediction function with probability calibration:</p>
+            <pre>def predict_winner(season, venue, team1, team2, toss_winner, toss_decision):
+    input_df = pd.DataFrame({
+        'season': [season],
+        'venue': [venue],
+        'team1': [team1],
+        'team2': [team2],
+        'toss_winner': [toss_winner],
+        'toss_decision': [toss_decision]
+    })
+    
+    # Add team statistics
+    stats_dict = calculate_match_stats(team1, team2)
+    for key, value in stats_dict.items():
+        input_df[key] = value
+    
+    # Feature scaling & encoding
+    input_df = preprocess_features(input_df)
+    
+    # Make prediction with probability
+    prediction = model.predict(input_df)
+    proba = model.predict_proba(input_df)
+    
+    # Adjust probability based on team stats
+    win_probability = adjust_probability(proba, team1, team2)
+    
+    return le_dict['winner'].inverse_transform(prediction)[0], win_probability</pre>
+        </div>
+
+        <div class="section">
+            <h2>3. Model Performance</h2>
+            <div class="metrics">
+Accuracy: 66.7%
+Total Matches: 6
+Correct Predictions: 4
+Validation Method: Out-of-sample testing</div>
+
+            <h3>3.1 Test Cases</h3>
+            <div class="test-case pass">
+Test #1: RCB vs KKR
+Venue: Eden Gardens
+Predicted: Royal Challengers Bengaluru
+Actual: Royal Challengers Bengaluru
+Confidence: 40.5%
+Result: ✓ PASS</div>
+
+            <div class="test-case fail">
+Test #2: SRH vs RR
+Venue: Rajiv Gandhi International Stadium
+Predicted: Sunrisers Hyderabad
+Actual: Rajasthan Royals
+Confidence: 40.4%
+Result: ✗ FAIL</div>
+
+            <div class="test-case pass">
+Test #3: SRH vs LSG
+Venue: Rajiv Gandhi International Stadium
+Predicted: Lucknow Super Giants
+Actual: Lucknow Super Giants
+Confidence: 56.4%
+Result: ✓ PASS</div>
+
+            <div class="test-case pass">
+Test #4: RCB vs GT
+Venue: M Chinnaswamy Stadium
+Predicted: Gujarat Titans
+Actual: Gujarat Titans
+Confidence: 40.5%
+Result: ✓ PASS</div>
+
+            <div class="test-case fail">
+Test #5: RR vs PBKS
+Venue: M Chinnaswamy Stadium
+Predicted: Punjab Kings
+Actual: Rajasthan Royals
+Confidence: 57.9%
+Result: ✗ FAIL</div>
+
+            <div class="test-case pass">
+Test #6: MI vs LSG
+Venue: Wankhede Stadium
+Predicted: Lucknow Super Giants
+Actual: Lucknow Super Giants
+Confidence: 61.2%
+Result: ✓ PASS</div>
+        </div>
+
+        <div class="section">
+            <h2>4. Future Improvements</h2>
+            <ul>
+                <li>Implement additional features:
+                    <ul>
+                        <li>Player-specific statistics</li>
+                        <li>Recent form metrics</li>
+                        <li>Head-to-head records</li>
+                    </ul>
+                </li>
+                <li>Enhance model accuracy through:
+                    <ul>
+                        <li>Hyperparameter optimization</li>
+                        <li>Feature selection refinement</li>
+                        <li>Ensemble method exploration</li>
+                    </ul>
+                </li>
+            </ul>
+        </div>
+
+        <footer>
+            <p>Created by Deviprasad Shetty (<a href="https://github.com/redmoon0x">@redmoon0x</a>)</p>
+            <p>Project Repository: <a href="https://github.com/redmoon0x/ipl-prediction">ipl-prediction</a></p>
+        </footer>
+    </div>
+</body>
+</html>
