@@ -1,0 +1,53 @@
+# Match 1
+season = '2024'
+venue = 'Eden Gardens'
+team1 = 'Kolkata Knight Riders'
+team2 = 'Royal Challengers Bengaluru'
+toss_winner = 'Royal Challengers Bengaluru'
+toss_decision = 'field'
+winner = 'Royal Challengers Bengaluru'
+
+# Match 2
+season = '2024'
+venue = 'Rajiv Gandhi International Stadium'
+team1 = 'Sunrisers Hyderabad'
+team2 = 'Rajasthan Royals'
+toss_winner = 'Rajasthan Royals'
+toss_decision = 'field'
+winner = 'Rajasthan Royals'
+
+# Match 3
+season = '2024'
+venue = 'Rajiv Gandhi International Stadium'
+team1 = 'Sunrisers Hyderabad'
+team2 = 'Lucknow Super Giants'
+toss_winner = 'Lucknow Super Giants'
+toss_decision = 'field'
+winner = 'Lucknow Super Giants'
+
+# Match 4
+season = '2024'
+venue = 'M Chinnaswamy Stadium'
+team1 = 'Royal Challengers Bengaluru'
+team2 = 'Gujarat Titans'
+toss_winner = 'Gujarat Titans'
+toss_decision = 'field'
+winner = 'Gujarat Titans'
+
+# Match 5
+season = '2024'
+venue = 'New International Cricket Stadium'
+team1 = 'Rajasthan Royals'
+team2 = 'Punjab Kings'
+toss_winner = 'Rajasthan Royals'
+toss_decision = 'bat'
+winner = 'Rajasthan Royals'
+
+# Match 6
+season = '2024'
+venue = 'Wankhede Stadium'
+team1 = 'Mumbai Indians'
+team2 = 'Lucknow Super Giants'
+toss_winner = 'Lucknow Super Giants'
+toss_decision = 'field'
+winner = 'Lucknow Super Giants'
