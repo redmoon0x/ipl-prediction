@@ -37,4 +37,4 @@ ENV/
 # Local development
 .env
 .DS_Store
-app.py
+
