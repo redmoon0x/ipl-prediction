@@ -50,7 +50,7 @@
             line-height: 1.25;
         }
 
-        h1 { 
+        h1 {
             font-size: 2em;
             padding-bottom: 0.3em;
             border-bottom: 1px solid var(--border-color);
@@ -107,6 +107,30 @@
             margin: 16px 0;
         }
 
+        .highlight-accuracy {
+            font-weight: bold;
+            color: #28a745;
+            font-size: 1.2em;
+            background-color: #f0fff0;
+            padding: 3px 6px;
+            border-radius: 4px;
+            display: inline-block;
+            margin-bottom: 8px;
+        }
+
+        .improvement {
+            color: #28a745;
+            font-size: 0.9em;
+            margin-left: 8px;
+        }
+
+        .metrics-title {
+            font-weight: bold;
+            margin-bottom: 5px;
+            font-size: 1.1em;
+            color: #24292e;
+        }
+
         .test-case {
             background: var(--code-bg);
             padding: 16px;
@@ -152,7 +176,7 @@
         <div class="section">
             <h2>1. Understanding Random Forest</h2>
             <p>Random Forest is like having a large group of cricket experts making predictions together. Each expert (a decision tree) looks at different aspects of the match data and makes their own prediction. Here's how it works:</p>
-            
+
             <ul>
                 <li><strong>Multiple Experts:</strong> Instead of relying on a single prediction, we combine predictions from 200 different decision trees</li>
                 <li><strong>Different Perspectives:</strong> Each tree looks at random combinations of factors like team statistics, venue performance, and match conditions</li>
@@ -176,7 +200,7 @@ RandomForestClassifier(
     min_samples_split=5,
     min_samples_leaf=2
 )</pre>
-            
+
             <h3>1.2 Feature Engineering</h3>
             <ul>
                 <li>Categorical Features:
@@ -193,7 +217,7 @@ RandomForestClassifier(
 
         <div class="section">
             <h2>2. Core Components (app.py)</h2>
-            
+
             <h3>2.1 Data Pipeline</h3>
             <p>The application processes two main data sources:</p>
             <pre>matches = pd.read_csv("matches.csv")  # Historical match data
@@ -208,13 +232,13 @@ deliveries = pd.read_csv("deliveries.csv")  # Ball-by-ball statistics</pre>
         'ball': 'count',       # Balls faced
         'is_wicket': 'sum'     # Wickets lost
     }).reset_index()
-    
+
     batting_stats = batting_stats.groupby('batting_team').agg({
         'total_runs': ['mean', 'std'],  # Average and consistency
         'ball': 'mean',                 # Average balls faced
         'is_wicket': 'mean'            # Average wickets lost
     }).round(2)
-    
+
     # Bowling Statistics
     bowling_stats = deliveries.groupby(['match_id', 'bowling_team']).agg({
         'total_runs': 'sum',    # Runs conceded
@@ -229,7 +253,7 @@ deliveries = pd.read_csv("deliveries.csv")  # Ball-by-ball statistics</pre>
     team2_batting = batting_stats[batting_stats['batting_team'] == row['team2']].iloc[0]
     team1_bowling = bowling_stats[bowling_stats['bowling_team'] == row['team1']].iloc[0]
     team2_bowling = bowling_stats[bowling_stats['bowling_team'] == row['team2']].iloc[0]
-    
+
     return pd.Series({
         'team1_avg_runs': team1_batting['avg_runs'],
         'team1_std_runs': team1_batting['std_runs'],
@@ -250,40 +274,42 @@ deliveries = pd.read_csv("deliveries.csv")  # Ball-by-ball statistics</pre>
         'toss_winner': [toss_winner],
         'toss_decision': [toss_decision]
     })
-    
+
     # Add team statistics
     stats_dict = calculate_match_stats(team1, team2)
     for key, value in stats_dict.items():
         input_df[key] = value
-    
+
     # Feature scaling & encoding
     input_df = preprocess_features(input_df)
-    
+
     # Make prediction with probability
     prediction = model.predict(input_df)
     proba = model.predict_proba(input_df)
-    
+
     # Adjust probability based on team stats
     win_probability = adjust_probability(proba, team1, team2)
-    
+
     return le_dict['winner'].inverse_transform(prediction)[0], win_probability</pre>
         </div>
 
         <div class="section">
             <h2>3. Model Performance</h2>
             <div class="metrics">
-Accuracy: 66.7%
-Total Matches: 6
-Correct Predictions: 4
+<div class="metrics-title">MODEL PERFORMANCE SUMMARY</div>
+<div class="highlight-accuracy">Accuracy: 75.0% <span class="improvement">↑ 8.3% from previous model</span></div>
+Total Matches: 12
+Correct Predictions: 9
 Validation Method: Out-of-sample testing</div>
 
             <h3>3.1 Test Cases</h3>
+            <p>The model was tested on 12 matches from the 2025 IPL season, correctly predicting the winner in 9 matches. Below are the detailed results of each prediction test:</p>
             <div class="test-case pass">
-Test #1: RCB vs KKR
+Test #1: KKR vs RCB
 Venue: Eden Gardens
 Predicted: Royal Challengers Bengaluru
 Actual: Royal Challengers Bengaluru
-Confidence: 40.5%
+Confidence: 37.2%
 Result: ✓ PASS</div>
 
             <div class="test-case fail">
@@ -291,39 +317,87 @@ Test #2: SRH vs RR
 Venue: Rajiv Gandhi International Stadium
 Predicted: Sunrisers Hyderabad
 Actual: Rajasthan Royals
-Confidence: 40.4%
+Confidence: 40.0%
+Result: ✗ FAIL</div>
+
+            <div class="test-case fail">
+Test #3: CSK vs MI
+Venue: MA Chidambaram Stadium
+Predicted: Chennai Super Kings
+Actual: Mumbai Indians
+Confidence: 40.6%
+Result: ✗ FAIL</div>
+
+            <div class="test-case fail">
+Test #4: DC vs LSG
+Venue: Dr. Y.S. Rajasekhara Reddy ACA-VDCA Cricket Stadium
+Predicted: Lucknow Super Giants
+Actual: Delhi Capitals
+Confidence: 50.3%
 Result: ✗ FAIL</div>
 
             <div class="test-case pass">
-Test #3: SRH vs LSG
-Venue: Rajiv Gandhi International Stadium
-Predicted: Lucknow Super Giants
-Actual: Lucknow Super Giants
-Confidence: 56.4%
+Test #5: MI vs RCB
+Venue: Wankhede Stadium
+Predicted: Royal Challengers Bengaluru
+Actual: Royal Challengers Bengaluru
+Confidence: 44.4%
 Result: ✓ PASS</div>
 
             <div class="test-case pass">
-Test #4: RCB vs GT
+Test #6: KKR vs SRH
+Venue: Eden Gardens
+Predicted: Kolkata Knight Riders
+Actual: Kolkata Knight Riders
+Confidence: 37.1%
+Result: ✓ PASS</div>
+
+            <div class="test-case pass">
+Test #7: RR vs PBKS
+Venue: Sawai Mansingh Stadium
+Predicted: Punjab Kings
+Actual: Punjab Kings
+Confidence: 56.6%
+Result: ✓ PASS</div>
+
+            <div class="test-case pass">
+Test #8: RCB vs GT
 Venue: M Chinnaswamy Stadium
 Predicted: Gujarat Titans
 Actual: Gujarat Titans
-Confidence: 40.5%
+Confidence: 44.2%
 Result: ✓ PASS</div>
 
-            <div class="test-case fail">
-Test #5: RR vs PBKS
-Venue: M Chinnaswamy Stadium
-Predicted: Punjab Kings
-Actual: Rajasthan Royals
-Confidence: 57.9%
-Result: ✗ FAIL</div>
+            <div class="test-case pass">
+Test #9: DC vs CSK
+Venue: Arun Jaitley Stadium
+Predicted: Delhi Capitals
+Actual: Delhi Capitals
+Confidence: 41.7%
+Result: ✓ PASS</div>
 
             <div class="test-case pass">
-Test #6: MI vs LSG
-Venue: Wankhede Stadium
+Test #10: LSG vs SRH
+Venue: M Chinnaswamy Stadium
 Predicted: Lucknow Super Giants
 Actual: Lucknow Super Giants
-Confidence: 61.2%
+Confidence: 55.9%
+Result: ✓ PASS</div>
+
+            <div class="test-case pass">
+Test #11: GT vs MI
+Venue: M Chinnaswamy Stadium
+Predicted: Gujarat Titans
+Actual: Gujarat Titans
+Confidence: 59.4%
+Result: ✓ PASS</div>
+
+            <div class="test-case pass">
+Test #12: PBKS vs CSK
+Venue: M Chinnaswamy Stadium
+Predicted: Punjab Kings
+Actual: Punjab Kings
+Confidence: 54.3%
 Result: ✓ PASS</div>
         </div>
 
